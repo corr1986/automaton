@@ -76,6 +76,11 @@ const PROTECTED_FILES: readonly string[] = Object.freeze([
   "agent/policy-engine.js",
   "agent/policy-rules/index.ts",
   "agent/policy-rules/index.js",
+  // Replication (fork URL + profit gate)
+  "replication/spawn.ts",
+  "replication/spawn.js",
+  "replication/profit-gate.ts",
+  "replication/profit-gate.js",
 ]);
 
 /**

@@ -368,6 +368,14 @@ async function run(): Promise<void> {
     logger.warn(`[${new Date().toISOString()}] Bootstrap topup skipped: ${err.message}`);
   }
 
+  // Profit gate baseline: record initial capital once (credits + USDC)
+  try {
+    const { recordInitialCapital } = await import("./replication/profit-gate.js");
+    await recordInitialCapital({ identity, config, db, conway });
+  } catch (err: any) {
+    logger.warn(`[${new Date().toISOString()}] Initial capital not recorded: ${err.message}`);
+  }
+
   // Start heartbeat daemon (Phase 1.1: DurableScheduler)
   const heartbeat = createHeartbeatDaemon({
     identity,

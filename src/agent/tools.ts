@@ -1624,6 +1624,13 @@ Model: ${ctx.inference.getDefaultModel()}
           await import("../replication/genesis.js");
         const { spawnChild } = await import("../replication/spawn.js");
         const { ChildLifecycle } = await import("../replication/lifecycle.js");
+        const { checkProfitGate } = await import("../replication/profit-gate.js");
+
+        // Profit gate: replicate only after doubling initial capital
+        const gate = await checkProfitGate(ctx);
+        if (!gate.allowed) {
+          return `Blocked: Replication requires doubling your initial capital. Current: $${(gate.currentCents / 100).toFixed(2)}, required: $${(gate.requiredCents / 100).toFixed(2)}. Earn revenue first.`;
+        }
 
         // Validate genesis params first
         validateGenesisParams({
