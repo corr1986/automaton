@@ -47,13 +47,13 @@ describe("children clone the fork", () => {
     expect(clone).toContain(FORK_URL);
   });
 
-  it("no spawn path references the upstream repository", () => {
-    const src = readFileSync(
-      fileURLToPath(new URL("../replication/spawn.ts", import.meta.url)),
-      "utf-8",
-    );
-    expect(src).not.toContain(UPSTREAM_URL);
-  });
+  it.each(["../replication/spawn.ts", "../../scripts/automaton.sh"])(
+    "%s does not reference the upstream repository",
+    (file) => {
+      const src = readFileSync(fileURLToPath(new URL(file, import.meta.url)), "utf-8");
+      expect(src).not.toContain(UPSTREAM_URL);
+    },
+  );
 });
 
 describe("replication code is protected", () => {

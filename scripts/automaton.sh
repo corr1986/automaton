@@ -3,7 +3,7 @@
 # curl -fsSL https://conway.tech/automaton.sh | sh
 set -e
 
-REPO="https://github.com/Conway-Research/automaton.git"
+REPO="https://github.com/corr1986/automaton.git"
 
 # Determine install directory
 if [ -n "$AUTOMATON_DIR" ]; then

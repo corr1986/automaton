@@ -98,6 +98,27 @@ describe("profit gate", () => {
     expect(db.getKV(INITIAL_CAPITAL_KEY)).toBe("2000");
   });
 
+  it("does not record a zero baseline (wallet not funded yet)", async () => {
+    conway.creditsCents = 0;
+    await recordInitialCapital(ctx);
+    expect(db.getKV(INITIAL_CAPITAL_KEY)).toBeUndefined();
+  });
+
+  it("treats a zero baseline as unrecorded and blocks", async () => {
+    db.setKV(INITIAL_CAPITAL_KEY, "0");
+    conway.creditsCents = 2000;
+    const gate = await checkProfitGate(ctx);
+    expect(gate.allowed).toBe(false);
+    expect(db.getKV(INITIAL_CAPITAL_KEY)).toBe("2000");
+  });
+
+  it("blocks with zero capital and no baseline", async () => {
+    conway.creditsCents = 0;
+    const gate = await checkProfitGate(ctx);
+    expect(gate.allowed).toBe(false);
+    expect(db.getKV(INITIAL_CAPITAL_KEY)).toBeUndefined();
+  });
+
   it("spawn_child refuses before doubling and creates no sandbox", async () => {
     db.setKV(INITIAL_CAPITAL_KEY, "2000");
     conway.creditsCents = 3000;

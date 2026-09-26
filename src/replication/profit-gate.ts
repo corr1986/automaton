@@ -27,20 +27,27 @@ async function getCapitalCents(ctx: GateContext): Promise<number> {
   return credits + Math.round(usdc * 100);
 }
 
-/** Store the current capital as baseline if none is stored yet. */
+/** Baseline in cents, or 0 when not recorded yet (a zero baseline counts as unrecorded). */
+function getBaselineCents(ctx: GateContext): number {
+  const stored = Number(ctx.db.getKV(INITIAL_CAPITAL_KEY));
+  return Number.isFinite(stored) && stored > 0 ? stored : 0;
+}
+
+/** Store the current capital as baseline if none is stored yet and the wallet is funded. */
 export async function recordInitialCapital(ctx: GateContext): Promise<void> {
-  if (ctx.db.getKV(INITIAL_CAPITAL_KEY)) return;
-  ctx.db.setKV(INITIAL_CAPITAL_KEY, String(await getCapitalCents(ctx)));
+  if (getBaselineCents(ctx) > 0) return;
+  const currentCents = await getCapitalCents(ctx);
+  if (currentCents > 0) ctx.db.setKV(INITIAL_CAPITAL_KEY, String(currentCents));
 }
 
 /** Allowed only when current capital >= 2x the recorded baseline. */
 export async function checkProfitGate(ctx: GateContext): Promise<ProfitGateResult> {
   const currentCents = await getCapitalCents(ctx);
-  const stored = ctx.db.getKV(INITIAL_CAPITAL_KEY);
-  if (!stored) {
-    ctx.db.setKV(INITIAL_CAPITAL_KEY, String(currentCents));
+  const baselineCents = getBaselineCents(ctx);
+  if (baselineCents === 0) {
+    if (currentCents > 0) ctx.db.setKV(INITIAL_CAPITAL_KEY, String(currentCents));
     return { allowed: false, currentCents, requiredCents: currentCents * 2 };
   }
-  const requiredCents = Number(stored) * 2;
+  const requiredCents = baselineCents * 2;
   return { allowed: currentCents >= requiredCents, currentCents, requiredCents };
 }
